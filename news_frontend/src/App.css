@@ -1,0 +1,73 @@
+:root {
+  --primary-color: #4682b4;
+  --secondary-color: #f0f2f4;
+  --text-primary: #111518;
+  --text-secondary: #637788;
+  --background-color: #ffffff;
+}
+
+/* Override Bootstrap's secondary button */
+.btn-secondary {
+  background-color: var(--secondary-color) !important; /* Light grey */
+  color: var(--text-primary) !important; /* Black text */
+  border-color: var(
+    --secondary-color
+  ) !important; /* Optional: match border to background */
+}
+
+/* Optional: hover and focus states for better UX */
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background-color: #c0c0c0 !important; /* Slightly darker grey on hover */
+  color: #000000 !important;
+  border-color: #c0c0c0 !important;
+}
+body {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  font-family: "Newsreader", serif;
+}
+
+.steel-blue-theme .tab-active {
+  color: var(--primary-color) !important;
+  border-bottom: 2px solid var(--primary-color) !important;
+}
+
+.steel-blue-theme .tab-inactive {
+  color: var(--text-secondary) !important;
+}
+
+.search-bar {
+  background-color: var(--secondary-color);
+}
+
+.icon-button {
+  background-color: var(--secondary-color);
+  color: var(--text-primary);
+}
+
+.news-card {
+  transition: background-color 0.2s ease;
+}
+
+.news-card:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.news-image {
+  width: 192px;
+  height: 128px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .news-image {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .news-content {
+    width: 100%;
+  }
+}
