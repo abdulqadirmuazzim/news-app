@@ -9,6 +9,7 @@ from rest_framework.authentication import TokenAuthentication
 from .models import NewsArticle
 from .serializers import NewsSerializer, UserSerializer, LoginSerializer
 from .api import get_news, fields
+from datetime import datetime
 
 # from rest_framework.authtoken.views import ObtainAuthToken
 
@@ -30,11 +31,29 @@ class SaveArticle(generics.ListCreateAPIView):
 
 class UnsaveArticle(generics.DestroyAPIView):
     serializer_class = NewsSerializer
-    permission_classes = [IsAuthenticated]  # Require authentication to delete notes
+    permission_classes = [AllowAny]  # Require authentication to delete notes
 
     def get_queryset(self):
         user = self.request.user
         return NewsArticle.objects.filter(author=user)
+
+class ArticlesView(APIView):
+    def post(self, request):
+        data = self.request.data
+        article = NewsArticle.objects.filter(article_id=data["article_id"], user=request.user)
+        if article.exists():
+            article[0].delete()
+            return Response({"message": "Article unsaved successfully"}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            data["pubDate"] = datetime.fromisoformat(data["pubDate"])
+            print(data)
+            serializer = NewsSerializer(data=data)
+
+            if serializer.is_valid():
+                serializer.save(user=request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # creating a user
 class CreateUserView(generics.CreateAPIView):
@@ -50,8 +69,6 @@ class LogInView(APIView):
         if not self.request.session.exists(self.request.session.session_key):
             self.request.session.create()
 
-        print("Request data:", request.data)
-        print("Self Request data:", self.request.data)
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
@@ -63,7 +80,7 @@ class LogInView(APIView):
             # store the information in the sessions
             self.request.session['user'] = user_serializer.data
             self.request.session['token'] = token.key
-            
+            # user test
             return Response({
                 'token': token.key,
                 'user': user_serializer.data
@@ -77,7 +94,7 @@ class LogOutView(APIView):
 
     def post(self, request):
         self.request.user.auth_token.delete()
-        return Response({"message": "You have logged out successfully"}, status=status.HTTP_201_NO_CONTENT)
+        return Response({"message": "You have logged out successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 
 class GetUserView(generics.ListAPIView):
@@ -96,22 +113,18 @@ class FetchNews(APIView):
 
         # Expecting dictionary class
         response = get_news(**request.query_params)
-        print(request.query_params)
-        # store the next page in the session
-        request.session["next_page"] = response["nextPage"]
-        request.session.modified = True
-        # if successful
-        if response["status"] == "success":
-            articles = response.get("results")  # A list of dictionaries
-            categories = [element for a in articles for element in a["category"]]
-            categories = list(set(categories))
-            return Response(
-                {"articles": articles, "categories": categories, "next_page": response['nextPage']}, status=status.HTTP_200_OK
-            )
+        if response.get("status"):
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print(response.get("results", "Key doesn't exist!"))
-            return Response(
-                {"error": "Failed to fetch news", **response},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            print(request.query_params)
+            next_page = response.get("nextPage", None)
+            # store the next page in the session
+            if next_page:
+                request.session["nextPage"] = next_page
+                request.session.modified = True
+            return Response(response, status=status.HTTP_200_OK)
+        
+        
 
+
+# when your coding like this it looks sooo coooooool!!!!

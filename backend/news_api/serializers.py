@@ -7,9 +7,9 @@ from .models import NewsArticle
 class NewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = NewsArticle
-        fields = "__all__"
         extra_kwargs = {"user": {"read_only": True}}
-        # exclude = ["some_fields", "another_field"] -> this is used when you want to include all fields and exclude certian ones
+        fields = "__all__"
+        # exclude = [] # this is used when you want to include all fields and exclude certian ones
         # It can only be used alone and not with the fields attribute
 
 

@@ -1,7 +1,7 @@
-import React from 'react'
-import Menu from "./components/Menu";
-import Header from "./components/Header";
-import MobileNav from "./components/MobileNav";
+import React from "react";
+import Menu from "../components/Menu";
+import Header from "../components/Header";
+import MobileNav from "../components/MobileNav";
 
 function Home() {
   return (
@@ -16,7 +16,7 @@ function Home() {
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default Home
+export default Home;

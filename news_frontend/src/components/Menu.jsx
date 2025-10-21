@@ -48,7 +48,7 @@ function Menu() {
                     setCurrentTab(tab);
                   }}
                 >
-                  <p className="m-0 fw-bold">{tab}</p>
+                  <p className="m-0 fw-bold">{`${tab}`.toUpperCase()}</p>
                 </a>
               ))}
             </div>

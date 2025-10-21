@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import api from "../api";
 
 function Articles({ category, setCategories }) {
   // Variables and states
   const [articles, setArticles] = useState([]);
   const [pubTime, setPubTime] = useState([]);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState([]);
   const [loading, setLoading] = useState(null);
+  const count = useRef(0);
 
   useEffect(() => {
+    count.current += 1;
+    console.log(`We have rendered this page ${count.current} times`);
     fetchApi({});
   }, []);
 
@@ -17,7 +21,6 @@ function Articles({ category, setCategories }) {
   const fetchApi = async (parameters) => {
     console.log("Parameters:", parameters);
     setLoading(true);
-    // if (parameters.nextPage) parameters.nextPage = 1;
     try {
       const data = await axios.get("/api/get_news", {
         params: parameters,
@@ -25,6 +28,7 @@ function Articles({ category, setCategories }) {
       const news = data.data.articles;
       setCategories(data.data.categories);
       setArticles(news);
+      sessionStorage.setItem("nextPage", data.data.nextPage);
       setLoading(false);
     } catch (error) {
       setLoading("error");
@@ -40,8 +44,29 @@ function Articles({ category, setCategories }) {
   };
   // function to get the next page
   function getNextPage() {
-    fetchApi({ nextPage: sessionStorage.getItem("next_page") });
+    fetchApi({ page: sessionStorage.getItem("next_page") });
   }
+  const handleSaving = (article) => {
+    // Updating the state
+    setSaved((prevIds) =>
+      prevIds.includes(article)
+        ? prevIds.filter((item) => item !== article)
+        : [...prevIds, article]
+    );
+    // Don't forget to clean up code
+    console.log("Saved articles:", saved);
+    console.log("Article to save:", article);
+    // sending the request to the backend
+    let token = sessionStorage.getItem("token");
+    if (token) {
+      api
+        .post("/article", article)
+        .then((res) => res.data)
+        .then((data) => {
+          console.log(data);
+        });
+    }
+  };
 
   // function to parse date time
   const parseDateTime = (pubDate) => {
@@ -76,6 +101,9 @@ function Articles({ category, setCategories }) {
     <div className="text-center">
       <h2>Error 500</h2>
       <h2>Server seems to be down</h2>
+      <button className="btn btn-primary" onClick={() => history.go(0)}>
+        Refresh
+      </button>
     </div>
   );
 
@@ -94,6 +122,9 @@ function Articles({ category, setCategories }) {
       preLoader
     ) : (
       <>
+        <h1 className="text-center">
+          We have rendered this page {count.current} times
+        </h1>
         {articles.map((art, index) => {
           if (category === "All") {
             return (
@@ -109,20 +140,18 @@ function Articles({ category, setCategories }) {
                     className="mb-0"
                     style={{ color: "var(--text-secondary)" }}
                   >
-                    {art.description} <br /> released: {pubTime[index]} hours
-                    ago.
+                    {art.description} <br /> released: {pubTime[art]} hours ago.
                   </p>
                   <div
                     className="d-inline-flex p-2"
                     role="button"
-                    onClick={() => {
-                      setSaved(!saved);
-                      // save to the database in the backend
-                    }}
+                    onClick={() => handleSaving(art)}
                   >
                     <i
                       className={
-                        saved ? "bi bi-bookmark-fill" : "bi bi-bookmark"
+                        saved.includes(art)
+                          ? "bi bi-bookmark-fill"
+                          : "bi bi-bookmark"
                       }
                     ></i>
                   </div>
@@ -155,14 +184,13 @@ function Articles({ category, setCategories }) {
                     <div
                       className="d-inline-flex p-2"
                       role="button"
-                      onClick={() => {
-                        setSaved(!saved);
-                        // save to the database in the backend
-                      }}
+                      onClick={() => handleSaving(art)}
                     >
                       <i
                         className={
-                          saved ? "bi bi-bookmark-fill" : "bi bi-bookmark"
+                          saved.includes(art)
+                            ? "bi bi-bookmark-fill"
+                            : "bi bi-bookmark"
                         }
                       ></i>
                     </div>
@@ -177,7 +205,6 @@ function Articles({ category, setCategories }) {
             );
           }
         })}
-
         <div className="btn btn-info" onClick={getNextPage}>
           Next page
         </div>

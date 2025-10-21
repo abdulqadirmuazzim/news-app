@@ -12,12 +12,12 @@ class NewsArticle(models.Model):
     description = models.TextField()
     source_name = models.CharField(max_length=255)
     language = models.CharField(max_length=15)
-    video_url = models.URLField()  # add a default video as it could be none
-    image_url = models.URLField()
+    video_url = models.URLField(blank=True, null=True, max_length=500) 
+    image_url = models.URLField(blank=True, null=True, max_length=500)
     country = models.CharField(max_length=50)
     category = models.CharField(max_length=20)
     source_icon = models.URLField()
-    date_published = models.DateTimeField(blank=True)
+    pubDate = models.DateTimeField(blank=True, null=True)
     date_created = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

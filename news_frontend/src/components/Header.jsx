@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 function Header() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const user = sessionStorage.getItem("user");
+  const user = sessionStorage.getItem("username");
   console.log(user);
   return (
     <>
@@ -13,21 +13,23 @@ function Header() {
         style={{ borderBottomColor: "var(--secondary-color) !important" }}
       >
         <div className="d-flex align-items-center gap-3 gap-md-5">
-          <div
-            className="d-flex align-items-center gap-2"
-            style={{ color: "var(--primary-color)" }}
-          >
-            <i className="bi bi-newspaper fs-2"></i>
-            <h1
-              className="m-0 fs-3 fw-bold"
-              style={{ color: "var(--text-primary)" }}
+          <a href="/" style={{ textDecoration: "none" }}>
+            <div
+              className="d-flex align-items-center gap-2"
+              style={{ color: "var(--primary-color)" }}
             >
-              NewsToday
-            </h1>
-          </div>
+              <i className="bi bi-newspaper fs-2"></i>
+              <h1
+                className="m-0 fs-3 fw-bold"
+                style={{ color: "var(--text-primary)" }}
+              >
+                NewsToday
+              </h1>
+            </div>
+          </a>
         </div>
 
-        <div className="d-flex flex-grow-1 justify-content-center d-none d-md-flex">
+        {/* <div className="d-flex flex-grow-1 justify-content-center d-none d-md-flex">
           <nav className="d-flex align-items-center gap-4 gap-lg-5">
             <a
               className="text-decoration-none fs-6 fw-medium"
@@ -44,7 +46,7 @@ function Header() {
               Saved
             </a>
           </nav>
-        </div>
+        </div> */}
 
         <div className="d-flex align-items-center gap-3">
           <div className="d-none d-md-flex position-relative min-w-40">
@@ -79,13 +81,21 @@ function Header() {
           >
             <i className="bi bi-bell fs-5"></i>
           </button>
-
-          <button
-            className="btn btn-secondary rounded-border"
-            onClick={() => navigate("/login")}
-          >
-            Login
-          </button>
+          {user ? (
+            <button
+              className="btn btn-secondary rounded-border"
+              onClick={() => navigate("/dashboard")}
+            >
+              {user}
+            </button>
+          ) : (
+            <button
+              className="btn btn-secondary rounded-border"
+              onClick={() => navigate("/login")}
+            >
+              Login
+            </button>
+          )}
 
           <button
             className="btn icon-button rounded-circle d-flex align-items-center justify-content-center d-md-none"
