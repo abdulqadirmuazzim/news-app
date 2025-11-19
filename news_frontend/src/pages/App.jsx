@@ -5,6 +5,7 @@ import Home from "./Home";
 import Login from "./Login";
 import Signup from "./SignUp";
 import Dashoard from "./Dashoard";
+import ChangePassword from "./ChangePassword";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashoard />} />
+        <Route path="/change_password" element={<ChangePassword />} />
       </Routes>
     </BrowserRouter>
   );

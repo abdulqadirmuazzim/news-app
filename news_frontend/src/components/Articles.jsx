@@ -14,6 +14,7 @@ function Articles({ category, setCategories }) {
     count.current += 1;
     console.log(`We have rendered this page ${count.current} times`);
     fetchApi({});
+    getPosts();
   }, []);
 
   // functions
@@ -53,9 +54,6 @@ function Articles({ category, setCategories }) {
         ? prevIds.filter((item) => item !== article)
         : [...prevIds, article]
     );
-    // Don't forget to clean up code
-    console.log("Saved articles:", saved);
-    console.log("Article to save:", article);
     // sending the request to the backend
     let token = sessionStorage.getItem("token");
     if (token) {
@@ -66,6 +64,12 @@ function Articles({ category, setCategories }) {
           console.log(data);
         });
     }
+  };
+  // function for getting the articles saved by the user
+  const getPosts = async () => {
+    let response = await api.get("get_articles");
+    setSaved(response.data);
+    console.log(response.data);
   };
 
   // function to parse date time

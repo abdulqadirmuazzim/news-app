@@ -11,31 +11,17 @@ from .serializers import NewsSerializer, UserSerializer, LoginSerializer
 from .api import get_news, fields
 from datetime import datetime
 
-# from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.views import ObtainAuthToken
 
-class SaveArticle(generics.ListCreateAPIView):
-    queryset = NewsArticle.objects.all()
+class GetArticlesView(generics.ListAPIView):
     serializer_class = NewsSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return NewsArticle.objects.filter(user=user)
+        return NewsArticle.objects.filter(user=self.request.user).order_by(
+            "-date_created"
+        )
 
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(user=self.request.user)
-        else:
-            print(f"you have an error:\n {serializer.errors}")
-
-
-class UnsaveArticle(generics.DestroyAPIView):
-    serializer_class = NewsSerializer
-    permission_classes = [AllowAny]  # Require authentication to delete notes
-
-    def get_queryset(self):
-        user = self.request.user
-        return NewsArticle.objects.filter(author=user)
 
 class ArticlesView(APIView):
     def post(self, request):
@@ -45,13 +31,11 @@ class ArticlesView(APIView):
             article[0].delete()
             return Response({"message": "Article unsaved successfully"}, status=status.HTTP_204_NO_CONTENT)
         else:
-            data["pubDate"] = datetime.fromisoformat(data["pubDate"])
-            print(data)
             serializer = NewsSerializer(data=data)
 
             if serializer.is_valid():
                 serializer.save(user=request.user)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response({"message": "Article Saved", **serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -101,10 +85,27 @@ class GetUserView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+# update user info (username, email and password)
+class UpdateUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = self.request.user
+        data = self.request.data
+        user = User.objects.filter(id=user.id)
+        if user.exists():
+            user = user[0]
+            user.username = data.get("username", user.username)
+            user.email = data.get("email", user.email)
+            if data.get("password", None):
+                user.set_password(data["password"])
+            user.save()
+            return Response({"message": "User information updated successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 # handling the api news call
-
-
 class FetchNews(APIView):
     def get(self, request):
         # if there is no session, create one
@@ -123,8 +124,14 @@ class FetchNews(APIView):
                 request.session["nextPage"] = next_page
                 request.session.modified = True
             return Response(response, status=status.HTTP_200_OK)
-        
-        
 
+# view for deleting a user account
+class DeleteUser(generics.DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
-# when your coding like this it looks sooo coooooool!!!!
+    def delete(self, request, *args, **kwargs):
+        user = self.request.user
+        user.delete()
+        return Response({"message": "You have successfully deleted your account"})

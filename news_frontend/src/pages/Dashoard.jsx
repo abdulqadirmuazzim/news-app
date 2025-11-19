@@ -1,12 +1,21 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 
 function Dashoard() {
+  useEffect(() => {
+    getPosts();
+  }, []);
+  // Variables
   const user = sessionStorage.getItem("username");
+  const userEmail = sessionStorage.getItem("email");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [savedArticles, setSavedArticles] = useState([]);
   const navigate = useNavigate();
 
+  // functions
   const Logout = () => {
     api
       .post("logout")
@@ -18,6 +27,35 @@ function Dashoard() {
       })
       .catch((error) => console.log(error));
   };
+  const deleteAcount = async () => {
+    let res = await api.post("delete_user");
+    console.log(res.data);
+    sessionStorage.clear();
+  };
+  const ChangeInfo = async (e) => {
+    e.preventDefault();
+    console.log(username, email);
+    let res = await api.put("update_user", {
+      username: username,
+      email: email,
+    });
+    sessionStorage.setItem("username", username);
+    sessionStorage.setItem("email", email);
+    console.log(res.data);
+  };
+
+  const getPosts = async () => {
+    let response = await api.get("get_articles");
+    setSavedArticles(response.data);
+    console.log(response.data);
+  };
+
+  const deleteArticle = async (article) => {
+    let response = await api.post("article", article);
+    console.log(response.data);
+    getPosts();
+  };
+
   return (
     <>
       <Header />
@@ -32,61 +70,45 @@ function Dashoard() {
                 <div className="col-12 col-lg-8">
                   <div className="mb-5">
                     <h2 className="h4 fw-bold text-dark mb-3">Saved Posts</h2>
-
-                    <div className="d-flex flex-column gap-4">
-                      {/* Post 1 */}
-                      <div className="d-flex flex-column flex-md-row align-items-start gap-3 p-3 rounded bg-light">
-                        <div className="flex-grow-1">
-                          <p className="text-primary small fw-medium mb-1">
-                            Technology
-                          </p>
-                          <h3 className="h5 fw-bold text-dark mb-2">
-                            Tech Giant Unveils New AI Assistant
-                          </h3>
-                          <p className="small text-muted mb-0">
-                            The company's latest AI assistant promises to
-                            revolutionize personal productivity and digital
-                            interaction.
-                          </p>
-                        </div>
-                        <img
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVJEWbHbyMeQtM5XKQYpf-NijJ3cGpb3MYJQuMLpHsesL35Y2NV7zOeQBxAwMYgrkwjfCGuVBintUcSrY9J2xzxRH6UqZuFp3TOkoFtC7-HeQSR_74_ERCU5-0cQHYXvdMB_dEtvJEJPll4rqcmQlRpH3R5JMEiwKg9NyB_5KLL5uq7VRns93i0oa3P70V4QjQUR6pkkS5qvPS21yGhSm06WrO59xr03zjqaD2iEoiMi26oFlRH1zb_u7mMkrCIblO1OoHFKQ_0pA"
-                          alt="Tech Giant Unveils New AI Assistant"
-                          className="img-fluid rounded"
-                          style={{
-                            width: "160px",
-                            height: "112px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </div>
-
-                      {/* Post 2 */}
-                      <div className="d-flex flex-column flex-md-row align-items-start gap-3 p-3 rounded bg-light">
-                        <div className="flex-grow-1">
-                          <p className="text-primary small fw-medium mb-1">
-                            Science
-                          </p>
-                          <h3 className="h5 fw-bold text-dark mb-2">
-                            Breakthrough in Renewable Energy
-                          </h3>
-                          <p className="small text-muted mb-0">
-                            Scientists achieve a major milestone in solar energy
-                            efficiency, paving the way for more sustainable
-                            power solutions.
-                          </p>
-                        </div>
-                        <img
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuD887ArnTt3Zg8aJqh295gRjDT_4hW9MmD4rHQe7ex9t-UK5_Z8lQYe2NnvEMeoPcG7tBzvh87mIdRhbg_4mdcLkdwn83NFIJnVSCskqfkRzKTKc60IDTeWFaJFR9r_IBPtCPnpG0ZQRNUt6FzYiEklo-AVGldiiOhQudXrEQ3QDEBTNoCJ2PxzQSVCtUirb8NvCHQjLIvdX4cirGmmlDizyw1PpTNt2zuiz2rJkvvxQjrUmjLNgTHq2tPdJ-f-v-AzZMFPZXDyvY4"
-                          alt="Breakthrough in Renewable Energy"
-                          className="img-fluid rounded"
-                          style={{
-                            width: "160px",
-                            height: "112px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </div>
+                    {/* Posts */}
+                    <div className="d-flex flex-column gap-4 overflow-y-auto vh-50">
+                      {savedArticles.map((article) => {
+                        return (
+                          <div
+                            key={article.id}
+                            className="d-flex flex-column flex-md-row align-items-start gap-3 p-3 rounded bg-light"
+                          >
+                            <div className="flex-grow-1">
+                              <p className="text-primary small fw-medium mb-1">
+                                <a href={article.link}>
+                                  {article.category.split(", ")[0]}
+                                </a>
+                              </p>
+                              <h3 className="h5 fw-bold text-dark mb-2">
+                                {article.title}
+                              </h3>
+                              <p className="small text-muted mb-0">
+                                {article.description}
+                              </p>
+                              <i
+                                class="bi bi-trash my-2 fs-5 text-danger"
+                                role="button"
+                                onClick={() => deleteArticle(article)}
+                              ></i>
+                            </div>
+                            <img
+                              src={article.image_url}
+                              alt={article.title}
+                              className="img-fluid rounded"
+                              style={{
+                                width: "160px",
+                                height: "112px",
+                                objectFit: "cover",
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -107,7 +129,13 @@ function Dashoard() {
                         >
                           Name
                         </label>
-                        <input type="text" className="form-control" id="name" />
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="name"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                        />
                       </div>
 
                       <div>
@@ -121,28 +149,25 @@ function Dashoard() {
                           type="email"
                           className="form-control"
                           id="email"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="password"
-                          className="form-label small fw-medium text-dark mb-1"
-                        >
-                          New Password
-                        </label>
-                        <input
-                          type="password"
-                          className="form-control"
-                          id="password"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                         />
                       </div>
 
                       <button
                         type="submit"
                         className="btn btn-primary w-100 fw-bold py-2"
+                        onClick={ChangeInfo}
                       >
                         Update Information
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn btn-primary w-100 fw-bold py-2"
+                        onClick={() => navigate("/change_password")}
+                      >
+                        Change Password
                       </button>
                     </form>
                   </div>
@@ -159,7 +184,10 @@ function Dashoard() {
                         Log Out
                       </button>
 
-                      <button className="btn btn-outline-danger w-100 fw-bold py-2">
+                      <button
+                        className="btn btn-outline-danger w-100 fw-bold py-2"
+                        onClick={deleteAcount}
+                      >
                         Delete Account
                       </button>
                     </div>

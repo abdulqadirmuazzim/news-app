@@ -5,7 +5,6 @@ function Header() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const user = sessionStorage.getItem("username");
-  console.log(user);
   return (
     <>
       <header
