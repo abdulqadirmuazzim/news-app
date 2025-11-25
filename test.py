@@ -1,4 +1,7 @@
-from PIL import Image
+import requests
 
+res = requests.get("https://google.com")
 
-print(Image)
+print(res)
+
+# 

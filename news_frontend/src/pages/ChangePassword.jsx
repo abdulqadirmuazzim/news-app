@@ -9,13 +9,18 @@ function ChangePassword() {
   const [confirmPass, setConfirmPass] = useState("");
 
   // functions
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (NewPass !== confirmPass) {
-      // api.put("/", { NewPass });
-      console.log("Password changed successfully");
-    }
+    let response = await api.put("/change_password", {
+      old_password: oldPass,
+      password: NewPass,
+      confirm_password: confirmPass,
+    });
+    console.log("Password changed successfully", response.data);
+    setConfirmPass("");
+    setNewPass("");
+    setOldPass("");
   };
   return (
     <div className="min-vh-100 bg-body">

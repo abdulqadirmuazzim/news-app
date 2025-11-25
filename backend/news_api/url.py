@@ -14,4 +14,6 @@ urlpatterns = [
     # auth
     path("login", v.LogInView.as_view()),
     path("logout", v.LogOutView.as_view()),
+    # password
+    path("change_password", v.ChangePassword.as_view()),
 ]

@@ -57,3 +57,21 @@ class LoginSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError("Login failed, wrong username or password")
         return data
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=True, write_only=True)
+    confirm_password = serializers.CharField(required=True, write_only=True)
+    
+    class Meta:
+        model = User
+        fields = ["password", "old_password", "confirm_password"]
+
+    def validate(self, data):
+        # here data is expected to be a dictionary
+        password = data.get("password")
+        confirm_password = data.get("confirm_password")
+        if (data.get("password") == data.get("confirm_password")):
+            return data
+        else:
+            raise serializers.ValidationError({"Error": "passwords don't match"})

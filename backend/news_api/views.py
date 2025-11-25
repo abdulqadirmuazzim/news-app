@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from .models import NewsArticle
-from .serializers import NewsSerializer, UserSerializer, LoginSerializer
+from .serializers import NewsSerializer, UserSerializer, LoginSerializer, ChangePasswordSerializer
 from .api import get_news, fields
 from datetime import datetime
 
@@ -97,13 +97,25 @@ class UpdateUserView(APIView):
             user = user[0]
             user.username = data.get("username", user.username)
             user.email = data.get("email", user.email)
-            if data.get("password", None):
-                user.set_password(data["password"])
             user.save()
             return Response({"message": "User information updated successfully"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+# change password
+class ChangePassword(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def put(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(data=request.data)
+        user = self.request.user
+
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data["password"])
+            user.save()
+            # return a success message
+            return Response({"successful": "Password changed successfully!"})
+        else:
+            return Response({"error": "couldn't change password"}, status=status.HTTP_400_BAD_REQUEST)
 
 # handling the api news call
 class FetchNews(APIView):
